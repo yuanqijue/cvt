@@ -10,7 +10,7 @@ class MoCo(nn.Module):
     https://arxiv.org/abs/1911.05722
     """
 
-    def __init__(self, base_encoder, dim=256, mlp_dim=4096, T=1.0, K=4096, pretrained=True):
+    def __init__(self, base_encoder, dim=256, mlp_dim=4096, img_size=224, T=1.0, K=4096, pretrained=True):
         """
         dim: feature dimension (default: 256)
         mlp_dim: hidden dimension in MLPs (default: 4096)
@@ -21,10 +21,11 @@ class MoCo(nn.Module):
 
         self.K = K
         self.T = T
+        self.img_size = img_size
 
         # build encoders
-        self.base_encoder = base_encoder(num_classes=dim, pretrained=pretrained)
-        self.momentum_encoder = base_encoder(num_classes=dim)
+        self.base_encoder = base_encoder(img_size=img_size, num_classes=dim, pretrained=pretrained)
+        self.momentum_encoder = base_encoder(img_size=img_size, num_classes=dim)
 
         # projectors
         self.projector = MLP(3, dim, mlp_dim, dim)
@@ -34,8 +35,9 @@ class MoCo(nn.Module):
         self.predictor = MLP(2, dim, mlp_dim, dim)
 
         if hasattr(base_encoder, 'patch_embed'):
-            self.base_encoder.patch_embed = ConvStem(img_size=224, patch_size=16, in_chans=3, embed_dim=768)
-            self.momentum_encoder.patch_embed = ConvStem(img_size=224, patch_size=16, in_chans=3, embed_dim=768)
+            self.base_encoder.patch_embed = ConvStem(img_size=self.img_size, patch_size=16, in_chans=3, embed_dim=768)
+            self.momentum_encoder.patch_embed = ConvStem(img_size=self.img_size, patch_size=16, in_chans=3,
+                                                         embed_dim=768)
 
         for param_b, param_m in zip(self.base_encoder.parameters(), self.momentum_encoder.parameters()):
             param_m.data.copy_(param_b.data)  # initialize

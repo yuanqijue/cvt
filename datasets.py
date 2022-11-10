@@ -16,7 +16,7 @@ def build_transform(is_train, args, aug=True):
         normalize = transforms.Normalize(mean=[0.5071, 0.4867, 0.4408], std=[0.2675, 0.2565, 0.2761])
     else:
         normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-    if not is_train or not aug:
+    if not aug:
         return transforms.Compose([transforms.Resize(args.image_size), transforms.ToTensor(), normalize, ])
 
     # follow BYOL's augmentation recipe: https://arxiv.org/abs/2006.07733

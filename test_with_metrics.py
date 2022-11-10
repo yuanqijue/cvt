@@ -44,8 +44,7 @@ vit_models = dict(deit_small=deit_small_patch16_224, vit_small=vit_small_patch16
 
 parser = argparse.ArgumentParser(description='PyTorch OOD detection metric')
 parser.add_argument('--data-path', default='./data', type=str, help='dataset path')
-parser.add_argument('--data-set', default='cifar10', choices=['cifar10', 'cifar100'], type=str,
-                    help='train dataset')
+parser.add_argument('--data-set', default='cifar10', choices=['cifar10', 'cifar100'], type=str, help='train dataset')
 parser.add_argument('--ood-data-set', default=None, choices=['cifar10', 'cifar100', 'svhn', 'lsun', 'place365'],
                     type=str, help='ood dataset, if empty, the list of choices will be processed')
 parser.add_argument('-a', '--arch', metavar='ARCH', default='vit_base', help='model architecture: (default: vit_base)')
@@ -84,9 +83,17 @@ parser.add_argument('--ckpt', default='', type=str, help='absolute path folder t
                     required=True)
 parser.add_argument('--log_dir', default='output', type=str, help='path to log')
 parser.add_argument('--mode', default='unsup', choices=['sup', 'unsup'], type=str, help='unsupervised or supervised')
-parser.add_argument('--feature-type', default='ensemble', choices=['ensemble', 'encoder','predictor'], type=str, help='Feature type')
+parser.add_argument('--feature-type', default='ensemble', choices=['ensemble', 'encoder', 'predictor'], type=str,
+                    help='Feature type')
 parser.add_argument('--clusters', default=1, type=int, help='unsupervised or supervised')
 parser.add_argument('--plot_debug', action='store_true', help='plot figures and save the features')
+
+
+# CUDA_VISIBLE_DEVICES=2 nohup python test_with_metrics.py -a vit_base --gpu 0 --data-set cifar10 --feature-type=ensemble --plot_debug --ckpt /homes/yl4002/moco-v3-main/unsup_05_768 --moco-dim=768 --mode unsup --clusters 1 --batch-size 256 > log_metric_unsup_05_768_1.out 2>&1 &
+# CUDA_VISIBLE_DEVICES=2 nohup python test_with_metrics.py -a swin_base --gpu 0 --data-set cifar10 --feature-type=predictor --ckpt /homes/yl4002/moco-v3-main/unsup_05_768_cifar10_swin --moco-dim=768 --mode unsup --clusters 1 --batch-size 256 > log_metric_unsup_05_768_cifar10_swin_1.out 2>&1 &
+# CUDA_VISIBLE_DEVICES=0,1 nohup python test_with_metrics.py -a vit_base_in21k --gpu 0 --data-set cifar10 --feature-type=ensemble --ckpt /homes/yl4002/moco-v3-main/unsup_05_1024 --moco-dim=1024 --mode unsup --clusters 1 --batch-size 256 > log_metric_unsup_05_1024_cifar10_swin_1.out 2>&1 &
+
+# CUDA_VISIBLE_DEVICES=0,1 nohup python test_with_metrics.py -a vit_base --gpu 0 --data-set cifar10 --image-size=32 --feature-type=ensemble --ckpt /homes/yl4002/moco-v3-main/unsup_05_768 --moco-dim=768 --mode unsup --clusters 1 --batch-size 256 > log_metric_unsup_05_768_cifar10_1.out 2>&1 &
 
 def main():
     args = parser.parse_args()
@@ -169,7 +176,7 @@ def run_ood_eval(args, id_dataset_name, logger):
     ngpus_per_node = torch.cuda.device_count()
     # create model
     logger.info("=> creating model '{}'".format(args.arch))
-    model = moco.builder.MoCo(vit_models[args.arch], args.moco_dim, args.moco_mlp_dim, args.moco_t)
+    model = moco.builder.MoCo(vit_models[args.arch], args.moco_dim, args.moco_mlp_dim, args.image_size, args.moco_t)
 
     # load from pre-trained, before DistributedDataParallel constructor
     if args.pretrained:

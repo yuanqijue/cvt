@@ -3,7 +3,13 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-# CUDA_VISIBLE_DEVICES=2 nohup python train.py -a vit_base_in21k --optimizer=adamw --lr=1e-6 --weight-decay=1e-1 --epochs=20 --warmup-epochs=0 --moco-m-cos --moco-t=.5 --pretrained --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 --data-set cifar100 --moco-dim 1024 --ckpt /homes/yl4002/moco-v3-main/unsup_05_1024 --batch-size 64 > log_unsup_05_1024_wd_01.out 2>&1 &
+# CUDA_VISIBLE_DEVICES=2 nohup python train.py -a vit_base_in21k --optimizer=adamw --lr=1e-6 --weight-decay=1e-1 --epochs=20 --warmup-epochs=0 --moco-m-cos --moco-t=.5 --pretrained --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 --data-set cifar10 --moco-dim 1024 --ckpt /homes/yl4002/moco-v3-main/unsup_05_1024 --batch-size 64 > log_unsup_05_1024_wd_01.out 2>&1 &
+
+
+# CUDA_VISIBLE_DEVICES=0 python train.py -a vit_base --image-size=32 --optimizer=adamw --lr=1e-6 --weight-decay=1e-1 --epochs=20 --warmup-epochs=0 --moco-m-cos --moco-t=.5 --pretrained --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 --data-set cifar10 --moco-dim 768 --ckpt /homes/yl4002/moco-v3-main/unsup_05_768 --batch-size 256
+
+# CUDA_VISIBLE_DEVICES=0,1,2,4 nohup python train.py -a vit_base --image-size=32 --optimizer=adamw --lr=1e-6 --weight-decay=1e-1 --epochs=20 --warmup-epochs=0 --moco-m-cos --moco-t=.5 --pretrained --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 --data-set cifar10 --moco-dim 768 --ckpt /homes/yl4002/moco-v3-main/unsup_05_768 --batch-size 256 > log_unsup_05_768_wd_01.out 2>&1 &
+
 
 import argparse
 import builtins
@@ -169,7 +175,7 @@ def main_worker(gpu, ngpus_per_node, args):
     # create model
     logger.info("=> creating model '{}'".format(args.arch))
     logger.info("=> pretrained '{}'".format(args.pretrained))
-    model = moco.builder.MoCo(available_models[args.arch], args.moco_dim, args.moco_mlp_dim, args.moco_t,
+    model = moco.builder.MoCo(available_models[args.arch], args.moco_dim, args.moco_mlp_dim, args.image_size, args.moco_t,
                               pretrained=args.pretrained)
 
     if not torch.cuda.is_available():
